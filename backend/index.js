@@ -48,6 +48,11 @@ const io = new sock.Server(httpServer, {
 
 io.on("connection", (socket) => {
   console.log(`${socket.id} - connected`);
+
+  socket.on("form-message", (message) => {
+    const {title, body} = message;
+  });
+
   socket.on("disconnect", () => {
     console.log(`${socket.id} - disconnected`);
   });

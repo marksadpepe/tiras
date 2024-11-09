@@ -28,16 +28,10 @@ document.getElementById("messageForm").onsubmit = function(event) {
   const titleEl = document.getElementById("title");
   const bodyEl = document.getElementById("body");
 
-  const msgTitle = titleEl.value;
-  const msgBody = bodyEl.value;
+  const msgTitle = titleEl.value ?? "";
+  const msgBody = bodyEl.value ?? "";
 
-  if (msgTitle) {
-    sock.emit("form-title", msgTitle);
-  }
-
-  if (msgBody) {
-    sock.emit("form-body", msgBody);
-  }
+  sock.emit("form-message", {title: msgTitle, body: msgBody});
 
   titleEl.value = "";
   bodyEl.value = "";
