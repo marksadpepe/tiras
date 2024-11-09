@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "server": "node index.js"
+    "server_1": "node server_1.js",
+    "server_2": "node server_2.js"
   },
   "author": "",
   "license": "ISC",
