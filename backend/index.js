@@ -2,8 +2,16 @@ require("dotenv").config();
 
 const urlPkg = require("url");
 const http = require("http");
+const sock = require("socket.io");
 
+const {FRONTEND_URL} = process.env;
 const PORT = parseInt(process.env.SERVER_PORT ?? "");
+
+if (!FRONTEND_URL) {
+  console.error("Frontend URL was not specified");
+  process.exit(1);
+}
+
 if (typeof PORT !== "number" || isNaN(PORT)) {
   console.error("Incorrect server port format");
   process.exit(1);
@@ -32,6 +40,18 @@ const requestHandler = (req, res) => {
 };
 
 const httpServer = http.createServer(requestHandler);
+const io = new sock.Server(httpServer, {
+  cors: {
+    origin: FRONTEND_URL, methods: ["GET", "POST"]
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log(`${socket.id} - connected`);
+  socket.on("disconnect", () => {
+    console.log(`${socket.id} - disconnected`);
+  });
+});
 
 httpServer.listen(PORT, () => {
   console.log(`Server is running on ${PORT} port`);
