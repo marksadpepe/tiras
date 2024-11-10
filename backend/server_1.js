@@ -30,27 +30,65 @@ if (typeof UDP_PORT !== "number" || isNaN(UDP_PORT)) {
   process.exit(1);
 }
 
+let FIREBASE_TOKEN = "";
+
 // NOTE: should I move this to another module?
 const requestHandler = (req, res) => {
   const parsedUrl = urlPkg.parse(req.url, true);
   const path = parsedUrl.pathname;
   const method = req.method;
 
+  res.setHeader("Access-Control-Allow-Origin", FRONTEND_URL);
+  res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Content-Type", "application/json");
 
-  let data = {message: "Hello World"};
-  let status = 200;
-
-  if (method !== "GET") {
-    status = 405;
-    data.message = "Method Not Allowed";
-  } else if (path !== "/") {
-    status = 404;
-    data.message = "Page Not Found";
+  if (method === "OPTIONS") {
+    res.writeHead(200);
+    res.end();
+    return;
   }
 
-  res.writeHead(status);
-  res.end(JSON.stringify(data));
+  if (method !== "GET" && method !== "POST") {
+    res.writeHead(405);
+    res.end(JSON.stringify({message: "Method Not Allowed"}));
+
+    return;
+  }
+
+  if (path !== "/") {
+    res.writeHead(404);
+    res.end(JSON.stringify({message: "Page Not Found"}));
+
+    return;
+  }
+
+  if (method === "POST") {
+    let body = "";
+
+    req.on("data", (chunk) => {
+      body += chunk.toString();
+    });
+
+    req.on("end", () => {
+      try {
+        FIREBASE_TOKEN = JSON.parse(body).token;
+
+        res.writeHead(200);
+        res.end(JSON.stringify({}));
+      } catch (err) {
+        console.error(`Failed to parse request body: ${err}`);
+
+        res.writeHead(400);
+        res.end(JSON.stringify({message: "Bad Request"}));
+      }
+    });
+
+    return;
+  }
+
+  res.writeHead(200);
+  res.end(JSON.stringify({message: "Hello World"}));
 };
 
 const udpSocket = dgram.createSocket("udp4");
@@ -65,7 +103,9 @@ io.on("connection", (socket) => {
   console.log(`${socket.id} - connected`);
 
   socket.on("form-message", (message) => {
+    message["token"] = FIREBASE_TOKEN;
     const messageBuffer = Buffer.from(JSON.stringify(message));
+
     udpSocket.send(messageBuffer, UDP_PORT, SERVER_UDP_HOST);
   });
 
