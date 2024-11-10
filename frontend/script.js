@@ -10,7 +10,11 @@ import {
   BACKEND_URL
 } from "./config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getMessaging, onMessage, getToken } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-messaging.js";
+import {
+  getMessaging,
+  onMessage,
+  getToken
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: API_KEY,
@@ -25,26 +29,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 const sock = io(BACKEND_URL);
-
-onMessage(messaging, (payload) => {
-  new Notification(payload.notification.title, {
-    body: payload.notification.body,
-  });
-});
-
-document.getElementById("messageForm").onsubmit = function(event) {
-  event.preventDefault();
-  const titleEl = document.getElementById("title");
-  const bodyEl = document.getElementById("body");
-
-  const msgTitle = titleEl.value ?? "";
-  const msgBody = bodyEl.value ?? "";
-
-  sock.emit("form-message", {title: msgTitle, body: msgBody});
-
-  titleEl.value = "";
-  bodyEl.value = "";
-};
 
 window.addEventListener("DOMContentLoaded", async () => {
   let token = "";
@@ -84,4 +68,24 @@ window.addEventListener("DOMContentLoaded", async () => {
   } catch (err) {
     console.error(`Failed to POST a request: ${err}`);
   }
+});
+
+document.getElementById("messageForm").onsubmit = function(event) {
+  event.preventDefault();
+  const titleEl = document.getElementById("title");
+  const bodyEl = document.getElementById("body");
+
+  const msgTitle = titleEl.value ?? "";
+  const msgBody = bodyEl.value ?? "";
+
+  sock.emit("form-message", {title: msgTitle, body: msgBody});
+
+  titleEl.value = "";
+  bodyEl.value = "";
+};
+
+onMessage(messaging, (payload) => {
+  new Notification(payload.notification.title, {
+    body: payload.notification.body,
+  });
 });
