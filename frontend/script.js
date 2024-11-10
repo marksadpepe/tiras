@@ -5,10 +5,12 @@ import {
   AUTH_DOMAIN,
   MEASUREMENT_ID,
   STORAGE_BUCKET,
-  MESSAGING_SENDER_ID
+  MESSAGING_SENDER_ID,
+  VAPID_KEY,
+  BACKEND_URL
 } from "./config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getMessaging } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-messaging.js";
+import { getMessaging, onMessage, getToken } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: API_KEY,
@@ -21,7 +23,14 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const sock = io("http://localhost:5000");
+const messaging = getMessaging(app);
+const sock = io(BACKEND_URL);
+
+onMessage(messaging, (payload) => {
+  new Notification(payload.notification.title, {
+    body: payload.notification.body,
+  });
+});
 
 document.getElementById("messageForm").onsubmit = function(event) {
   event.preventDefault();
@@ -36,3 +45,43 @@ document.getElementById("messageForm").onsubmit = function(event) {
   titleEl.value = "";
   bodyEl.value = "";
 };
+
+window.addEventListener("DOMContentLoaded", async () => {
+  let token = "";
+  const permission = await Notification.requestPermission();
+  const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+
+  if (permission.toLowerCase() !== "granted") {
+    alert("Please allow notifications");
+    return;
+  }
+
+  try {
+    token = await getToken(messaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: registration
+    });
+  } catch (err) {
+    console.error(`Failed to get token: ${err}`);
+  }
+
+  if (!token) {
+    console.error("Token is empty");
+  }
+
+  try {
+    const response = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application"
+      },
+      body: JSON.stringify({token}),
+    });
+
+    if (response.status != 200) {
+      console.error(`Failed to POST a request: ${await response.json()}`);
+    }
+  } catch (err) {
+    console.error(`Failed to POST a request: ${err}`);
+  }
+});
