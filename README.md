@@ -38,4 +38,5 @@ The website is available at the following link: http://localhost:4000. If you wa
 "server": "npx http-server -p your_port"
 ```
 
-Also, make sure to enable notifications, and after the browser prompts you to reload, press the keyboard combination **Ctrl + Shift + R**.
+Also, make sure to enable notifications, and after the browser prompts you to reload, press the keyboard combination **Ctrl + Shift + R**:
+![send_message_firebase](https://github.com/user-attachments/assets/a970c926-9da9-4177-b12c-dc232fdea144)
