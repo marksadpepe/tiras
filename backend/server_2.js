@@ -1,21 +1,7 @@
-require("dotenv").config();
-
 const dgram = require("dgram");
 const admin = require("firebase-admin");
 const serviceAccount = require("./serviceAccountKey.json");
-
-const {SERVER_UDP_PORT, SERVER_UDP_HOST} = process.env;
-const port = parseInt(SERVER_UDP_PORT ?? "");
-
-if (!SERVER_UDP_HOST) {
-  console.error("UDP host was not specified");
-  process.exit(1);
-}
-
-if (typeof port !== "number" || isNaN(port)) {
-  console.error("Incorrect UDP port format");
-  process.exit(1)
-}
+const {UDP_PORT, SERVER_UDP_HOST} = require("./configurations");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -38,6 +24,6 @@ socket.on("message", async (buf) => {
 
 });
 
-socket.bind(port, SERVER_UDP_HOST, () => {
-  console.log(`Server #2 is running on ${port} port`);
+socket.bind(UDP_PORT, SERVER_UDP_HOST, () => {
+  console.log(`Server #2 is running on ${UDP_PORT} port`);
 });

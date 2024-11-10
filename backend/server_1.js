@@ -1,34 +1,13 @@
-require("dotenv").config();
-
 const urlPkg = require("url");
 const http = require("http");
 const sock = require("socket.io");
 const dgram = require("dgram");
-
-// TODO: move parsing logic to another module
-const {FRONTEND_URL, SERVER_UDP_HOST} = process.env;
-const PORT = parseInt(process.env.SERVER_HTTP_PORT ?? "");
-const UDP_PORT = parseInt(process.env.SERVER_UDP_PORT ?? "");
-
-if (!FRONTEND_URL) {
-  console.error("Frontend URL was not specified");
-  process.exit(1);
-}
-
-if (!SERVER_UDP_HOST) {
-  console.error("UDP host was not specified");
-  process.exit(1);
-}
-
-if (typeof PORT !== "number" || isNaN(PORT)) {
-  console.error("Incorrect server port format");
-  process.exit(1);
-}
-
-if (typeof UDP_PORT !== "number" || isNaN(UDP_PORT)) {
-  console.error("Incorrect UDP port format");
-  process.exit(1);
-}
+const {
+  FRONTEND_URL,
+  SERVER_UDP_HOST,
+  UDP_PORT,
+  HTTP_PORT
+} = require("./configurations");
 
 let FIREBASE_TOKEN = "";
 
@@ -114,6 +93,6 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(PORT, () => {
-  console.log(`Server #1 is running on ${PORT} port`);
+httpServer.listen(HTTP_PORT, () => {
+  console.log(`Server #1 is running on ${HTTP_PORT} port`);
 });
